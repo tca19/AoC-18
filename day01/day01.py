@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 
 import os.path
+from itertools import cycle
 
 def first_duplicate(changes):
-    frequency, i = 0, 0
+    frequency = 0
     seen_frequencies = set()
 
-    while True:
+    for val in cycle(changes):
         seen_frequencies.add(frequency)
-        frequency += changes[i % len(changes)]
+        frequency += val
         if frequency in seen_frequencies:
             return frequency
-        i += 1
 
 if __name__ == '__main__':
     filename = "day01_changes.txt"
