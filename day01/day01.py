@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import os.path
+import os
+import sys
 from itertools import cycle
 
 def first_duplicate(changes):
@@ -14,10 +15,11 @@ def first_duplicate(changes):
             return frequency
 
 if __name__ == '__main__':
-    filename = "day01_changes.txt"
-
+    if len(sys.argv) != 2:
+        sys.exit("usage: ./day01.py INPUT_FILE")
+    filename = sys.argv[1]
     if not os.path.exists(filename):
-        print("ERROR. Name your input file as:", filename)
+         sys.exit("error: {} does not exist.".format(filename))
     else:
         changes = list(map(int, open(filename).read().split()))
         print("PART ONE:", sum(changes))
