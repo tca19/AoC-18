@@ -4,11 +4,12 @@ import os
 import sys
 from itertools import cycle
 
+# Given the list of frequency changes (+1, -2, -3...), apply changes repeatedly
+# until it finds a duplicate frequency.
 def first_duplicate(frequency_changes):
     frequency = 0
     seen_frequencies = set()
-
-    for val in cycle(frequency_changes):
+    for val in cycle(frequency_changes): # .cycle = infinite repetition
         seen_frequencies.add(frequency)
         frequency += val
         if frequency in seen_frequencies:
