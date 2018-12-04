@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import os.path
+import os
+import sys
 from collections import Counter
 
 def checksum(list_id):
@@ -23,13 +24,14 @@ def common_correct_letters(list_id):
             if distance == 1:
                 return "".join([a for a,b in zip(s1, s2) if a == b])
 
-if __name__ == '__main__':
-    filename = "day02_boxIDs.txt"
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        sys.exit("usage: ./day02.py INPUT_FILE")
+    filename = sys.argv[1]
     if not os.path.exists(filename):
-        print("ERROR. Name your input file as:", filename)
-    else:
-        list_id = open(filename).read().splitlines()
-        part_1 = checksum(list_id)
-        print("PART ONE:", part_1)
-        part_2 = common_correct_letters(list_id)
-        print("PART TWO:", part_2)
+         sys.exit("error: {} does not exist.".format(filename))
+    list_id = open(filename).read().splitlines()
+    part_1 = checksum(list_id)
+    print("PART ONE:", part_1)
+    part_2 = common_correct_letters(list_id)
+    print("PART TWO:", part_2)
