@@ -8,7 +8,7 @@ import string
 def react(polymer):
     stack = [polymer[0]]
     for c in polymer[1:]:
-        if stack == []:
+        if not stack: # is empty? (faster than len(stack) == 0 or stack == [])
             stack.append(c)
         elif c.lower() == stack[-1].lower() and c != stack[-1]:
             stack.pop()
@@ -21,7 +21,7 @@ def react(polymer):
 def shortest_possible_polymer(polymer):
     possible_lengths = []
     for c in string.ascii_lowercase:
-        residue = ''.join([l for l in polymer if l != c and l != c.upper()])
+        residue = polymer.replace(c, '').replace(c.upper(), '')
         possible_lengths.append(react(residue))
     return min(possible_lengths)
 
