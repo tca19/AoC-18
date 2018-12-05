@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
 
 import os
-import re
 import sys
 import string
 
-# All the reactions that could happen
-regex = re.compile("aA|Aa|bB|Bb|cC|Cc|dD|Dd|eE|Ee|fF|Ff|gG|Gg|hH|Hh|iI|Ii|"
-                   "jJ|Jj|kK|Kk|lL|Ll|mM|Mm|nN|Nn|oO|Oo|pP|Pp|qQ|Qq|rR|Rr|"
-                   "sS|Ss|tT|Tt|uU|Uu|vV|Vv|wW|Ww|xX|Xx|yY|Yy|zZ|Zz")
-
-# Remove all units that react in polymer. Repeat until no more reactions happen
+# Remove all units causing a reaction in polymer (see line 30)
 def react(polymer):
-    while True:
-        reacted = regex.sub('', polymer)
-        if reacted == polymer:
-            return len(reacted)
-        polymer = reacted
+    stack = [polymer[0]]
+    for c in polymer[1:]:
+        if stack == []:
+            stack.append(c)
+        elif c.lower() == stack[-1].lower() and c != stack[-1]:
+            stack.pop()
+        else:
+            stack.append(c)
+    return len(stack)
 
 # Find the unit type that once removed in the polymer gives the shortest reacted
 # polymer. Return the length of the shortest polymer.
