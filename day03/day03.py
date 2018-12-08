@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import os.path
+import os
+import sys
 
 grid = [ [0 for _ in range(1000)] for _ in range(1000) ]
 
@@ -41,12 +42,11 @@ def id_not_overlap(lines):
             return id[1:]
 
 if __name__ == '__main__':
-    filename = "day03_claims.txt"
+    if len(sys.argv) != 2:
+        sys.exit("usage: ./day03.py INPUT_FILE")
+    filename = sys.argv[1]
     if not os.path.exists(filename):
-        print("ERROR. Name your input file as:", filename)
-    else:
-        lines = parse_file(filename)
-        part_1 = size_overlap(lines)
-        print("PART ONE:", part_1)
-        part_2 = id_not_overlap(lines)
-        print("PART TWO:", part_2)
+         sys.exit("error: {} does not exist.".format(filename))
+    claims = parse_file(filename)
+    print("PART ONE:", size_overlap(claims))
+    print("PART TWO:", id_not_overlap(claims))
