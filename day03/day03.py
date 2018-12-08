@@ -41,6 +41,14 @@ def id_not_overlap(lines):
         if not does_overlap:
             return id[1:]
 
+# Input file is a list of claims composed of an id, a starting position and its
+# width and height (like #1 @ 1,3: 4x4), one per line. Each claim represents the
+# area of a large square piece of fabric used by an elf (each elf has one
+# claim).
+#
+# Part 1: some claims overlap. Find the number of square inches of fabric that
+#         are within two or more claims.
+# Part 2: find the ID of the claim that doesn't overlap.
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         sys.exit("usage: ./day03.py INPUT_FILE")
