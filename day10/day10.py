@@ -59,3 +59,4 @@ if __name__ == '__main__':
     vx, vy = [ int(l[2]) for l in data ], [ int(l[3]) for l in data ]
     message, iteration = find_message(points, vx, vy)
     print("PART ONE:\n" + message)
+    print("PART TWO:", iteration)
