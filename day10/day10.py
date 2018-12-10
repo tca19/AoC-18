@@ -4,6 +4,21 @@ import os
 import re
 import sys
 
+# Return the number of seconds needed for the points to form a message.
+def seconds_to_converge(points, vy):
+    # Assume the final message has a height smaller than 15. It means that the
+    # distance between the points with the largest/smallest y will have a
+    # distance less than 15.
+    # Let's D be the distance between those two points at the beginning and v
+    # the speed at which these points move closer to each other. Then the time t
+    # to converge verifies: D - t*v <= 15 therefore t >= (D-15)/v.
+    y_and_v = [ (p[1], v) for p,v in zip(points, vy) ]
+    y_and_v.sort() # first item has smallest y, last item has largest y
+    D = y_and_v[-1][0] - y_and_v[0][0]
+    v = y_and_v[0][1] - y_and_v[-1][1]
+
+    return int((D-15) / v) + 1 # t has to be greater, and must be an int
+
 # Return the coordinates of the bounding box that includes all points.
 def bounding_box(points):
     xmin = xmax = points[0][0]
@@ -16,29 +31,21 @@ def bounding_box(points):
     return xmin, xmax, ymin, ymax
 
 # Return the message as ascii art and the number of iterations needed to get it.
-def find_message(points, vx, vy):
-    iteration = 0
-
-    # simulate the movements of the points. Stop once the bounding box of the
-    # points has a height smaller than 15 (suppose that the size of the letters
-    # is less than 15).
-    xmin, xmax, ymin, ymax = bounding_box(points)
-    while (ymax - ymin) >= 15:
-        # update the position of each point
-        for i in range(len(points)):
-            points[i][0] += vx[i]
-            points[i][1] += vy[i]
-        iteration += 1
-        xmin, xmax, ymin, ymax = bounding_box(points)
+def find_message(points, vx, vy, iterations):
+    # move the points like a certain number of iteration happened
+    for i in range(len(points)):
+        points[i][0] += vx[i] * iteration
+        points[i][1] += vy[i] * iteration
 
     # build ascii message, with '#' for points. The size of the message is the
     # same as the bounding box.
+    xmin, xmax, ymin, ymax = bounding_box(points)
     grid = [ [' ' for _ in range(xmin, xmax+1)] for _ in range(ymin, ymax+1) ]
     for x, y in points:
         grid[y-ymin][x-xmin] = '#'
 
     message = ["".join(row) for row in grid]
-    return '\n'.join(message), iteration
+    return '\n'.join(message)
 
 # Input file is a list of points with their X,Y coordinates and vX,vY
 # velocities. The points are placed throughout the space and move at each second
@@ -57,6 +64,7 @@ if __name__ == '__main__':
     data = [re.findall("-?\d+", l) for l in open(filename).read().splitlines()]
     points = [ [int(l[0]), int(l[1])] for l in data ]
     vx, vy = [ int(l[2]) for l in data ], [ int(l[3]) for l in data ]
-    message, iteration = find_message(points, vx, vy)
+    iteration = seconds_to_converge(points, vy)
+    message = find_message(points, vx, vy, iteration)
     print("PART ONE:\n" + message)
     print("PART TWO:", iteration)
