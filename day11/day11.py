@@ -20,6 +20,30 @@ def coordinates_max_power(grid):
 
     return "{},{}".format(*best_square)
 
+# Return the top-left coordinates and the size of the square with the largest
+# total power (the sum of fuel power of all its cells).
+def coordinates_max_power_any(grid):
+    max_power   = -10**9
+    best_square = (-1, -1)
+    best_size   = -1
+    # for all sizes, iterate over all possible top-left corner. For each
+    # possible corner, sum all cells.
+    for size in range(1, 21):
+        print(size)
+        for x in range(300-size):      # (x,y) is the square top-left corner
+            for y in range(300-size):
+                s = 0
+                for dx in range(size):
+                    for dy in range(size):
+                        s += grid[x+dx][y+dy]
+                if s > max_power:
+                    print(size, "@", x, y)
+                    max_power = s
+                    best_square = (x+1, y+1) # problem says grid is 1-indexed
+                    best_size = size
+
+    return "{},{},{}".format(*best_square, best_size)
+
 # A 300x300 grid represents the power level of fuel cells. Each cell has a value
 # that depends on its x,y coordinates and the serial number (the file input).
 #
@@ -40,3 +64,4 @@ if __name__ == '__main__':
     grid = [ [ ((((X+10)*Y + SERIAL_NUMBER) * (X+10)) // 100) % 10 - 5 \
                for Y in range(1, 301) ] for X in range(1, 301) ]
     print("PART ONE:", coordinates_max_power(grid))
+    print("PART TWO:", coordinates_max_power_any(grid))
