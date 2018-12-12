@@ -23,24 +23,31 @@ def coordinates_max_power(grid):
 # Return the top-left coordinates and the size of the square with the largest
 # total power (the sum of fuel power of all its cells).
 def coordinates_max_power_any(grid):
+    # build the summed-area table of grid
+    L = len(grid)
+    for x in range(1, L):
+        grid[x][0] += grid[x-1][0] # cumulative sum of first column
+        grid[0][x] += grid[0][x-1] # cumulative sum of first row
+    for x in range(1, L):
+        for y in range(1, L):
+            # each cell is the sum of all the values above and on the left
+            grid[x][y] += grid[x][y-1] + grid[x-1][y] - grid[x-1][y-1]
+
     max_power   = -10**9
     best_square = (-1, -1)
     best_size   = -1
-    # for all sizes, iterate over all possible top-left corner. For each
-    # possible corner, sum all cells.
-    for size in range(1, 21):
-        print(size)
-        for x in range(300-size):      # (x,y) is the square top-left corner
-            for y in range(300-size):
-                s = 0
-                for dx in range(size):
-                    for dy in range(size):
-                        s += grid[x+dx][y+dy]
+    for size in range(1, 301):
+        for x in range(1, 300-size):
+            for y in range(1, 300-size):
+                # top-left is (x, y); bottom-right is (x + size-1, y + size-1)
+                s = grid[x + size-1][y + size-1] \
+                  - grid[x-1][y + size-1]        \
+                  - grid[x + size-1][y-1]        \
+                  + grid[x-1][y-1]
                 if s > max_power:
-                    print(size, "@", x, y)
-                    max_power = s
+                    max_power   = s
                     best_square = (x+1, y+1) # problem says grid is 1-indexed
-                    best_size = size
+                    best_size   = size
 
     return "{},{},{}".format(*best_square, best_size)
 
