@@ -16,10 +16,10 @@ def init_guards_sleep(data):
     # the date in "%Y-%M-%D %H-%M" format, lexicographic order is the same as
     # chronological order.
     data.sort()
-    extract_id     = re.compile(r"#(\d+)")
+    extract_id     = re.compile(r"#(\d+)") # see line 51 to know pattern of line
     extract_minute = re.compile(r":(\d+)")
     for line in data:
-        if "Guard" in line: # get the id of the current guard (see line 47)
+        if "Guard" in line: # get the id of the current guard
             id_guard = int(extract_id.findall(line)[0])
         if "falls" in line: # get starting minute of sleeping interval
             start = int(extract_minute.findall(line)[0])
