@@ -9,42 +9,35 @@ fabric = [ [0 for _ in range(1000)] for _ in range(1000) ]
 
 # Extract and return info of each claim from filename.
 def parse_file(filename):
-    claims = []
-    with open(filename) as f:
-        for line in f:
-            id, _, pos, size = line.split()
-            x, y = pos[:-1].split(',')
-            width, height = size.split('x')
-            x      = int(x)
-            y      = int(y)
-            width  = int(width)
-            height = int(height)
-            claims.append((id, x, y, width, height))
-    return claims
+    # Claims are like "#5 @ 178,10: 5x3". Use a regex to extract all numbers.
+    extractor = re.compile("\d+") # assume there is no negative values
+    return [[int(n) for n in extractor.findall(l)]
+            for l in open(filename).read().splitlines()]
 
 # Return the total overlapping claims area size (in square inches).
 def size_overlap(claims):
     total_overlap = 0
-    for claim in claims:
-        id, x, y, width, height = claim
+    for id, x, y, width, height in claims:
         for i in range(x, x+width):
             for j in range(y, y+height):
-                if fabric[i][j] == 1:
+                if fabric[i][j] == 1: # this square inch has already been used
                     total_overlap += 1
-                fabric[i][j] += 1
+                fabric[i][j] += 1     # mark it as (once again) used
     return total_overlap
 
 # Return the id of the only claim not overlapped by any other one.
 def id_not_overlap(claims):
-    for claim in claims:
-        id, x, y, width, height = claim
+    # For each claim, verify that all its area has been wanted only once. If
+    # there is a part which has been wanted at least 2 times, then it does
+    # overlap with another claim.
+    for id, x, y, width, height in claims:
         does_overlap = False
         for i in range(x, x+width):
             for j in range(y, y+height):
                 if fabric[i][j] > 1:
                     does_overlap = True
         if not does_overlap:
-            return id[1:]
+            return id
 
 # Input file is a list of claims, one per line, like "#1 @ 1,3: 4x4" having:
 #   - an id (1)
