@@ -21,18 +21,21 @@ def parse(filename):
     return places, minx, maxx, miny, maxy
 
 # Return the index of the place in `places` which is the closest to point (x,y).
-# Return None if there is a tie (2 or more places has the same distance)
+# Return None if there is a tie (2 or more places has the same distance).
 def index_closest_place(x, y, places):
     min_d = 10**9
     closest_place = []
+    has_tie = False
     for index, (px, py) in enumerate(places):
         d = abs(px - x) + abs(py - y)
         if d < min_d:
             min_d = d
-            closest_place = [index]
+            closest_place = index
+            has_tie = False
         elif d == min_d:
-            closest_place.append(index)
-    return closest_place[0] if len(closest_place) == 1 else None
+            has_tie = True
+    if not has_tie:
+        return closest_place
 
 # Return the size of the finite area with the largest number of cells having the
 # same closest place.
