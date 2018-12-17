@@ -3,6 +3,23 @@
 import os
 import sys
 
+# Read filename to get coordinates of places, return max/min x and y
+def parse(filename):
+    places = [list(map(int, line.split(',')))
+              for line in open(filename).read().splitlines()]
+    minx, maxx = places[0]
+    miny, maxy = places[0]
+    for x, y in places[1:]:
+        if x < minx:
+            minx = x
+        if x > maxx:
+            maxx = x
+        if y < miny:
+            miny = y
+        if y > maxy:
+            maxy = y
+    return places, minx, maxx, miny, maxy
+
 # Return the index of the place in `places` which is the closest to point (x,y).
 # Return None if there is a tie (2 or more places has the same distance)
 def index_closest_place(x, y, places):
@@ -19,7 +36,7 @@ def index_closest_place(x, y, places):
 
 # Return the size of the finite area with the largest number of cells having the
 # same closest place.
-def largest_area_same_closest(places):
+def largest_area_same_closest(places, minx, maxx, miny, maxy):
     # Places are scattered all around an infinite grid. Each cell of this grid
     # has 1 (or more) closest places (using the Manhattan distance). When a
     # group of adjacent cells have the same closest place, they form an area.
@@ -29,11 +46,6 @@ def largest_area_same_closest(places):
     # will have the same size, whereas the inifinite area will have a bigger
     # size (because the grid is bigger). This function returns the largest area
     # size which has a size independent of the size of the grid.
-    minx = min([x for x,y in places])
-    maxx = max([x for x,y in places])
-    miny = min([y for x,y in places])
-    maxy = max([y for x,y in places])
-
     area_basic_grid = [0 for _ in places]
     for x in range(minx, maxx+1):
         for y in range(miny, maxy+1):
@@ -54,16 +66,11 @@ def largest_area_same_closest(places):
 
 # Return the number of cells having a total distance to all places less than
 # `N`. Total distance is the sum of all the Manhattan distance to each place.
-def ncells_close_to_all(places, N):
-    minx = min([x for x,y in places])
-    maxx = max([x for x,y in places])
-    miny = min([y for x,y in places])
-    maxy = max([y for x,y in places])
-
+def ncells_close_to_all(places, minx, maxx, miny, maxy, N):
     ncells = 0
     for x in range(minx, maxx+1):
         for y in range(miny, maxy+1):
-            distances = [abs(px - x) + abs(py - y) for px,py in places]
+            distances = [abs(px-x) + abs(py-y) for px,py in places]
             if sum(distances) < N:
                 ncells += 1
     return ncells
@@ -82,7 +89,6 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     if not os.path.exists(filename):
          sys.exit("error: {} does not exist.".format(filename))
-    places = [list(map(int, line.split(',')))
-              for line in open(filename).read().splitlines()]
-    print("PART ONE:", largest_area__same_closest(places))
-    print("PART TWO:", ncells_close_to_all(places, 10000))
+    places, minx, maxx, miny, maxy = parse(filename)
+    print("PART ONE:", largest_area_same_closest(places, minx, maxx, miny, maxy))
+    print("PART TWO:", ncells_close_to_all(places, minx, maxx, miny, maxy, 10000))
