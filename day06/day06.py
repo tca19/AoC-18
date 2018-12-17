@@ -19,7 +19,7 @@ def index_closest_place(x, y, places):
 
 # Return the size of the finite area with the largest number of cells having the
 # same closest place.
-def largest_area_closest(places):
+def largest_area_same_closest(places):
     # Places are scattered all around an infinite grid. Each cell of this grid
     # has 1 (or more) closest places (using the Manhattan distance). When a
     # group of adjacent cells have the same closest place, they form an area.
@@ -52,6 +52,22 @@ def largest_area_closest(places):
     finite_area = [a for a,b in zip(area_basic_grid, area_expanded_grid) if a == b]
     return max(finite_area)
 
+# Return the number of cells having a total distance to all places less than
+# `N`. Total distance is the sum of all the Manhattan distance to each place.
+def ncells_close_to_all(places, N):
+    minx = min([x for x,y in places])
+    maxx = max([x for x,y in places])
+    miny = min([y for x,y in places])
+    maxy = max([y for x,y in places])
+
+    ncells = 0
+    for x in range(minx, maxx+1):
+        for y in range(miny, maxy+1):
+            distances = [abs(px - x) + abs(py - y) for px,py in places]
+            if sum(distances) < N:
+                ncells += 1
+    return ncells
+
 # Input file is a list of point coordinates (x, y), one per line, representing
 # places in an infinite grid.
 #
@@ -68,4 +84,5 @@ if __name__ == '__main__':
          sys.exit("error: {} does not exist.".format(filename))
     places = [list(map(int, line.split(',')))
               for line in open(filename).read().splitlines()]
-    print("PART ONE:", largest_area_closest(places))
+    print("PART ONE:", largest_area__same_closest(places))
+    print("PART TWO:", ncells_close_to_all(places, 10000))
