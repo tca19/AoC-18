@@ -3,7 +3,7 @@
 import os
 import sys
 
-# Read filename to get coordinates of places, return max/min x and y
+# Read filename to get coordinates of places, return max/min of x and y
 def parse(filename):
     places = [list(map(int, line.split(',')))
               for line in open(filename).read().splitlines()]
@@ -24,7 +24,7 @@ def parse(filename):
 # Return None if there is a tie (2 or more places has the same distance).
 def index_closest_place(x, y, places):
     min_d = 10**9
-    closest_place = []
+    closest_place = None
     has_tie = False
     for index, (px, py) in enumerate(places):
         d = abs(px - x) + abs(py - y)
@@ -44,28 +44,41 @@ def largest_area_same_closest(places, minx, maxx, miny, maxy):
     # has 1 (or more) closest places (using the Manhattan distance). When a
     # group of adjacent cells have the same closest place, they form an area.
     # Since the grid is infinite, some area are also infinite (especially the
-    # ones in the corners). To know which area are finite, we first consider a
-    # basic grid, and then slightly expand this grid. Area with a finite size
-    # will have the same size, whereas the inifinite area will have a bigger
-    # size (because the grid is bigger). This function returns the largest area
-    # size which has a size independent of the size of the grid.
-    area_basic_grid = [0 for _ in places]
+    # ones in the corners). To know which area are finite, we first consider the
+    # entire grid bounded by (minx, miny) and (maxx, maxy), and then slightly
+    # expand this grid. Areas with a finite size will have the same size,
+    # whereas the inifinite areas will have a bigger size (because the grid is
+    # bigger).  This function returns the largest area size which has a size
+    # independent of the size of the grid.
+
+    # 1 area per place because points can only has 1 closest area
+    areas = [0 for _ in places]
     for x in range(minx, maxx+1):
         for y in range(miny, maxy+1):
             idx = index_closest_place(x, y, places)
             if idx is not None:
-                area_basic_grid[idx] += 1
+                areas[idx] += 1
 
-    area_expanded_grid = [0 for _ in places]
-    s = 10
-    for x in range(minx - s, maxx+1 + s):
-        for y in range(miny - s, maxy+1 + s):
-            idx = index_closest_place(x, y, places)
-            if idx is not None:
-                area_expanded_grid[idx] += 1
+    # when a point outside the grid belongs to an area, it means this area is
+    # infinite, so mark its size as -1 so it can't be the largest one.
+    for x in range(minx-1, maxx+2):            # top edge
+        idx = index_closest_place(x, miny-1, places)
+        if idx is not None:
+            areas[idx] = -1
+    for x in range(minx-1, maxx+2):            # bottom edge
+        idx = index_closest_place(x, maxy+2, places)
+        if idx is not None:
+            areas[idx] = -1
+    for y in range(miny-1, maxy+2):            # left edge
+        idx = index_closest_place(minx-1, y, places)
+        if idx is not None:
+            areas[idx] = -1
+    for y in range(miny-1, maxy+2):            # right edge
+        idx = index_closest_place(maxx+2, y, places)
+        if idx is not None:
+            areas[idx] = -1
 
-    finite_area = [a for a,b in zip(area_basic_grid, area_expanded_grid) if a == b]
-    return max(finite_area)
+    return max(areas)
 
 # Return the number of cells having a total distance to all places less than
 # `N`. Total distance is the sum of all the Manhattan distance to each place.
