@@ -86,8 +86,10 @@ def ncells_close_to_all(places, minx, maxx, miny, maxy, N):
     ncells = 0
     for x in range(minx, maxx+1):
         for y in range(miny, maxy+1):
-            distances = [abs(px-x) + abs(py-y) for px,py in places]
-            if sum(distances) < N:
+            total_distance = 0
+            for px, py in places:
+                total_distance += abs(px-x) + abs(py-y)
+            if total_distance < N:
                 ncells += 1
     return ncells
 
