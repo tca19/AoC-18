@@ -2,6 +2,7 @@
 
 import os
 import sys
+from copy import deepcopy
 from collections import defaultdict
 
 # Read filename, return 2 dicts: one to know the following steps of a step, the
@@ -17,41 +18,15 @@ def parse(filename):
         preceding[line[-3]].add(line[1])
     return following, preceding
 
-# Return the order in which the tasks should be completed.
-def completion_order(following, preceding):
-    # find the roots (= the tasks which can start without requiring other tasks)
-    all_tasks = set()
-    for k, v in following.items():
-        all_tasks.add(k)
-        all_tasks.update(v)
-    roots = all_tasks - set.union(*following.values())
-    steps_order = ""
-    done = set()
-    available = roots
-    while len(done) < len(all_tasks):
-        cur_task = sorted(list(available), reverse=True).pop()
-        steps_order += cur_task
-        done.add(cur_task)
-        available.remove(cur_task)
-        # remove cur_task from the task that needed it
-        for required in preceding.values():
-            if cur_task in required:
-                required.remove(cur_task)
-        # for all the task following cur_task, put the ones not done and which
-        # don't need any other requirements into the available stack
-        for next in following[cur_task]:
-            if next not in done and len(preceding[next]) == 0:
-                available.add(next)
-    return steps_order
-
-# Return the time needed to complete all steps if mutiple workers are available.
-def completion_time(following, preceding):
+# Return the order and execution time of all tasks (n_workers are available)
+def completion_order_and_time(following, preceding, n_workers=1):
+    preceding = deepcopy(preceding) # copy to not alter original one
     # stack is the list of steps which can start without requiring other steps
-    done, stack = set(), set(following.keys()) - set.union(*following.values())
-    n_workers   = 5
-    doing       = [None for _ in range(n_workers)] # what the worker #i is doing
-    time_left   = [0 for _ in range(n_workers)]    # time to complete its task
-    total_time  = 0
+    stack      = set(following.keys()) - set.union(*following.values())
+    order      = ""
+    doing      = [None] * n_workers # what the worker #i is doing
+    time_left  = [0] * n_workers    # time the worker #i needs to complete task
+    total_time = 0
     while len(stack) > 0 or sum(time_left) > 0:
         # start as much as possible available tasks
         stack = sorted(stack, reverse=True)
@@ -65,16 +40,16 @@ def completion_time(following, preceding):
 
         # find the next completed task (and the time required to complete it)
         d, pos = min((T,idx) for idx,T in enumerate(time_left) if T > 0)
-        done.add(doing[pos])
+        order += doing[pos]
         total_time += d
 
-        # suppose `d` seconds have happened (so running tasks have progressed)
+        # `d` seconds have elapsed (so running tasks have progressed)
         for i in range(n_workers):
             if time_left[i] > 0:
                 time_left[i] -= d
 
         # task is done, remove it from the requirements of its following tasks.
-        # if it was the last requirement, add the following task to stack.
+        # if this was the last requirement, add the following task to stack.
         for next in following[doing[pos]]:
             preceding[next].remove(doing[pos])
             if len(preceding[next]) == 0:
@@ -84,7 +59,7 @@ def completion_time(following, preceding):
         doing[pos] = None
         time_left[pos] = 0
 
-    return total_time
+    return order, total_time
 
 # Input file is a list of steps and requirements about which steps must be
 # finished before others can begin. Lines are like:
@@ -101,6 +76,5 @@ if __name__ == '__main__':
     if not os.path.exists(filename):
          sys.exit("error: {} does not exist.".format(filename))
     following, preceding = parse(filename)
-    print("PART ONE:", completion_order(following, preceding))
-    following, preceding = parse(filename)
-    print("PART TWO:", completion_time(following, preceding))
+    print("PART ONE:", completion_order_and_time(following, preceding)[0])
+    print("PART TWO:", completion_order_and_time(following, preceding, 5)[1])
