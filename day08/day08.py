@@ -22,6 +22,18 @@ def parse(data):
 def sum_metadatas(node):
     return sum(node["metadata"]) + sum(sum_metadatas(c) for c in node["child"])
 
+# Return the value of node.
+def node_value(node):
+    # if node has no child, return the sum of its metadata.
+    if not node["child"]:
+        return sum(node["metadata"])
+    # otherwise, consider the metadata as child indexes and return the sum
+    # of values of child referenced by the metadata entries. If the index is not
+    # valid, skip it. A metadata entry of 1 corresponds to the first child (so
+    # use index-1).
+    return sum(node_value(node["child"][i-1]) for i in node["metadata"]
+               if i-1 in range(len(node["child"])))
+
 # Input file is a list of integers, all on one line. They represent a tree
 # structure, composed of nodes. Each node has a list of metadata and a list of
 # childs (which can be empty). For each node, its information are grouped as:
@@ -41,3 +53,4 @@ if __name__ == '__main__':
     data = list(map(int, open(filename).read().split()))
     tree = parse(data)
     print("PART ONE:", sum_metadatas(tree))
+    print("PART TWO:", node_value(tree))
