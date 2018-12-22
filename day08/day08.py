@@ -6,16 +6,15 @@ import sys
 # Return the structure of the tree as a dict (metadata and child for each node)
 def parse(data):
     # each node starts with 2 information: number of child, number of metadata.
-    # Use pop() to remove these information from the data.
-    n_child = data.pop(0) # get and remobe first element of a list
-    n_meta  = data.pop(0)
+    n_child = next(data) # data is an iterator, get the first 2 values
+    n_meta  = next(data)
     # the following data represent the child of this node. They follow the same
     # structure so call recursively the parse function. Since the `data`
-    # argument is passed by reference, each pop() operation will modify it so
-    # the next call will operate on a modified (i.e. reduced) version of `data`.
+    # argument is an iterator, each next() call will modify it so the next call
+    # will operate on a modified (i.e. reduced) version of `data`.
     child = [parse(data) for n in range(n_child)]
     # the following info is the list of metadata of this node.
-    metadata = [data.pop(0) for m in range(n_meta)]
+    metadata = [next(data) for m in range(n_meta)]
     return {"child": child, "metadata": metadata}
 
 # Return the sum of metadata of all nodes (including child of node)
@@ -51,6 +50,6 @@ if __name__ == '__main__':
     if not os.path.exists(filename):
          sys.exit("error: {} does not exist.".format(filename))
     data = list(map(int, open(filename).read().split()))
-    tree = parse(data)
+    tree = parse(iter(data))
     print("PART ONE:", sum_metadatas(tree))
     print("PART TWO:", node_value(tree))
