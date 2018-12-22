@@ -2,48 +2,22 @@
 
 import os
 import sys
+from collections import deque
 
-# Class representing a node in a doubly linked list.
-class Node:
-    def __init__(self, val):
-        self.prev = None
-        self.next = None
-        self.val  = val
-
-# Insert a new node with value `val` AFTER node `n`. Return the new node.
-def insert(n, val): # n <-> m becomes n <-> new <-> m
-    new = Node(val)
-    new.prev    = n
-    new.next    = n.next
-    n.next.prev = new
-    n.next      = new
-    return new
-
-# Move back by `offset` positions from `current` node in the list.
-def move_back(current, offset):
-    for _ in range(offset):
-        current = current.prev
-    return current
-
-# Return the score of the wininng player of the marble game. Use a doubly linked
-# list to represent the circle where the marbles are inserted.
+# Return the score of the wininng player of the marble game. Use a deque object
+# (double ended queue) to represent the circle where the marbles are inserted.
 def winning_score(n_players, n_marbles):
     scores = [0] * n_players
-    current_player = 0
-    current_node = Node(0)
-    current_node.next = current_node
-    current_node.prev = current_node
+    circle = deque([0]) # insert position will always be 0, only rotate deque
     for m in range(1, n_marbles+1):
         if m%23 == 0:
-            scores[current_player] += m
-            current_node = move_back(current_node, 7)
-            scores[current_player] += current_node.val
-            current_node.prev.next = current_node.next # remove current node
-            current_node.next.prev = current_node.prev
-            current_node = current_node.next
+            scores[(m-1) % n_players] += m
+            circle.rotate(-7) # move back 7 position = rotate to the left
+            scores[(m-1) % n_players] += circle.popleft()
+            circle.rotate(1) # move 1 pos to the right to insert AFTER new one
         else:
-            current_node = insert(current_node.next, m)
-        current_player = (current_player + 1) % n_players
+            circle.rotate(1) # move 1 pos to the right to insert AFTER current
+            circle.appendleft(m)
     return max(scores)
 
 # Input file is the number of players and the value of the last marble. The
