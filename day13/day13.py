@@ -117,11 +117,23 @@ def first_collision(grid, carts):
         carts.sort(key=lambda c: (c.x, c.y))
         for c in carts:
             c.move(grid)
-        carts, collisions = remove_collisions(carts)
-        if len(collisions) > 0:
-            # return position as "y,x" because the problem considers that the
-            # first coordinate is along the horizontal axis (not vertical)
-            return collisions[0][1], collisions[0][0]
+            # check for collision each time a cart has moved
+            carts, collisions = remove_collisions(carts)
+            if len(collisions) > 0:
+                # return position as "y,x" because the problem considers that
+                # the first coordinate is along the horizontal axis (not
+                # vertical)
+                return collisions[0][1], collisions[0][0]
+
+# Return the position of the last remaining cart after all collisions.
+def last_remaining_cart(grid, carts):
+    while len(carts) > 1:
+        carts.sort(key=lambda c: (c.x, c.y))
+        for c in carts:
+            c.move(grid)
+            # check for collision each time a cart has moved
+            carts, collisions = remove_collisions(carts)
+    return carts[0].y, carts[0].x
 
 # Input file is a representation of rail tracks and carts. Tracks are either
 # "-", "|", "/", "\" or "+". Carts are either ">", "<", "^" or "v", indicating
@@ -144,3 +156,4 @@ if __name__ == '__main__':
          sys.exit("error: {} does not exist.".format(filename))
     grid, carts = read_tracks_and_carts(filename)
     print("PART ONE: {},{}".format(*first_collision(grid, carts)))
+    print("PART TWO: {},{}".format(*last_remaining_cart(grid, carts)))
