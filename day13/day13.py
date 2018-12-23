@@ -2,6 +2,7 @@
 
 import os
 import sys
+from collections import defaultdict
 
 class Cart:
     def __init__(self, x, y, dir):
@@ -76,7 +77,7 @@ def read_tracks_and_carts(filename):
         for j, c in enumerate(line):
             if c == ">": # direction = East
                 carts.append(Cart(i, j, "E"))
-                s += "-"
+                s += "-" # remove the cart symbol from the grid
             elif c == "<": # direction = West
                 carts.append(Cart(i, j, "W"))
                 s += "-"
@@ -90,6 +91,37 @@ def read_tracks_and_carts(filename):
                 s += c
         grid.append(s)
     return grid, carts
+
+# Remove all the colliding carts. Return the remaining carts and collision
+# positions.
+def remove_collisions(carts):
+    # for each position, map the list of carts at this position
+    positions = defaultdict(list)
+    for c in carts:
+        positions[(c.x, c.y)].append(c)
+    collisions = []
+    remaining  = []
+    # if two carts are colliding, they have the same position. So the list of
+    # carts at this position has at least two elements. Keep only the carts that
+    # are alone at their position.
+    for pos, l in positions.items():
+        if len(l) == 1:
+            remaining += l
+        else:
+            collisions.append(pos)
+    return remaining, collisions
+
+# Return the position of the first cart collision.
+def first_collision(grid, carts):
+    while True:
+        carts.sort(key=lambda c: (c.x, c.y))
+        for c in carts:
+            c.move(grid)
+        carts, collisions = remove_collisions(carts)
+        if len(collisions) > 0:
+            # return position as "y,x" because the problem considers that the
+            # first coordinate is along the horizontal axis (not vertical)
+            return collisions[0][1], collisions[0][0]
 
 # Input file is a representation of rail tracks and carts. Tracks are either
 # "-", "|", "/", "\" or "+". Carts are either ">", "<", "^" or "v", indicating
@@ -111,6 +143,4 @@ if __name__ == '__main__':
     if not os.path.exists(filename):
          sys.exit("error: {} does not exist.".format(filename))
     grid, carts = read_tracks_and_carts(filename)
-    print("\n".join(grid))
-    for x in carts:
-        print(x.x, x.y, x.dir)
+    print("PART ONE: {},{}".format(*first_collision(grid, carts)))
