@@ -8,6 +8,61 @@ class Cart:
         self.x = x
         self.y = y
         self.dir = dir
+        self.choice = 0 # 0 for left, 1 for straight, 2 for right
+
+    # move the cart in the direction `dir`. Find the new direction for next move
+    def move(self, grid):
+        # move towards the right
+        if self.dir == "E":
+            self.y += 1
+            if grid[self.x][self.y] == "\\":
+                self.dir = "S"
+            elif grid[self.x][self.y] == "/":
+                self.dir = "N"
+            elif grid[self.x][self.y] == "+":
+                # coming from left: turning left = North; going straight = East
+                # and turning right => South
+                self.dir = "NES"[self.choice]
+                self.choice = (self.choice + 1) % 3
+
+        # move towards the left
+        elif self.dir == "W":
+            self.y -= 1
+            if grid[self.x][self.y] == "\\":
+                self.dir = "N"
+            elif grid[self.x][self.y] == "/":
+                self.dir = "S"
+            elif grid[self.x][self.y] == "+":
+                # coming from right: turning left = South; going straight = West
+                # and turning right => North
+                self.dir = "SWN"[self.choice]
+                self.choice = (self.choice + 1) % 3
+
+        # move towards the top
+        elif self.dir == "N":
+            self.x -= 1
+            if grid[self.x][self.y] == "\\":
+                self.dir = "W"
+            elif grid[self.x][self.y] == "/":
+                self.dir = "E"
+            elif grid[self.x][self.y] == "+":
+                # coming from bottom: turning left = West; going straight =
+                # North and turning right => East
+                self.dir = "WNE"[self.choice]
+                self.choice = (self.choice + 1) % 3
+
+        # move towards the bottom
+        elif self.dir == "S":
+            self.x += 1
+            if grid[self.x][self.y] == "\\":
+                self.dir = "E"
+            elif grid[self.x][self.y] == "/":
+                self.dir = "W"
+            elif grid[self.x][self.y] == "+":
+                # coming from top: turning left = East; going straight = South
+                # and turning right => West
+                self.dir = "ESW"[self.choice]
+                self.choice = (self.choice + 1) % 3
 
 # Read the rail tracks paths and carts position from filename. Return the tracks
 # as a 2D grid and the list of carts.
