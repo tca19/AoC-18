@@ -19,7 +19,7 @@ def seconds_to_converge(points, vy):
 
     return int((D-15) / v) + 1 # t has to be greater, and must be an int
 
-# Return the coordinates of the bounding box that includes all points.
+# Return the coordinates of the bounding box which includes all points.
 def bounding_box(points):
     xmin = xmax = points[0][0]
     ymin = ymax = points[0][1]
@@ -30,12 +30,12 @@ def bounding_box(points):
         ymax = max(ymax, p[1])
     return xmin, xmax, ymin, ymax
 
-# Return the message as ascii art and the number of iterations needed to get it.
+# Return the ascii art message displayed after a certain number of iterations.
 def find_message(points, vx, vy, iterations):
     # move the points like a certain number of iteration happened
     for i in range(len(points)):
-        points[i][0] += vx[i] * iteration
-        points[i][1] += vy[i] * iteration
+        points[i][0] += vx[i] * iterations
+        points[i][1] += vy[i] * iterations
 
     # build ascii message, with '#' for points. The size of the message is the
     # same as the bounding box.
@@ -53,7 +53,7 @@ def find_message(points, vx, vy, iterations):
 # space and will form a message.
 #
 # Part 1: find the message displayed by the points.
-# Part 2: find out the second the message appears.
+# Part 2: find out how many seconds it takes for the message to appear.
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         sys.exit("usage: ./day10.py INPUT_FILE")
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     data = [re.findall("-?\d+", l) for l in open(filename).read().splitlines()]
     points = [ [int(l[0]), int(l[1])] for l in data ]
     vx, vy = [ int(l[2]) for l in data ], [ int(l[3]) for l in data ]
-    iteration = seconds_to_converge(points, vy)
-    message = find_message(points, vx, vy, iteration)
+    iterations = seconds_to_converge(points, vy)
+    message = find_message(points, vx, vy, iterations)
     print("PART ONE:\n" + message)
-    print("PART TWO:", iteration)
+    print("PART TWO:", iterations)
