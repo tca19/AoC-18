@@ -5,6 +5,23 @@ import sys
 
 N_RECIPES = 503761
 
+# Return the scores of the m recipes created after N recipes have been made.
+def scores_after(N, m):
+    scores = "37"
+    pos_elf1 = 0
+    pos_elf2 = 1
+    while len(scores) < N+m:
+        r1 = int(scores[pos_elf1])
+        r2 = int(scores[pos_elf2])
+        scores += str(r1 + r2)
+        pos_elf1 += r1 + 1
+        if pos_elf1 >= len(scores):
+            pos_elf1 %= len(scores)
+        pos_elf2 += r2 + 1
+        if pos_elf2 >= len(scores):
+            pos_elf2 %= len(scores)
+    return scores[-m:]
+
 # Two elves are making recipes. Starting with only two recipes which have the
 # scores of 3 and 7, they create new recipes based on the already existing ones.
 # Each new recipe has a score which is appended to the current list of scores.
@@ -22,3 +39,4 @@ if __name__ == '__main__':
         if not os.path.exists(filename):
             sys.exit("error: {} does not exist.".format(filename))
         N_RECIPES = int(open(filename).read())
+    print("PART ONE:", scores_after(N_RECIPES, 10))
