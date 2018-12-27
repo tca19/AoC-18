@@ -32,11 +32,11 @@ def index_input(N):
         r1 = int(scores[pos_elf1])
         r2 = int(scores[pos_elf2])
         scores += str(r1 + r2)
-        # when 2 nes recipes are added at the same time, the input can be at the
-        # end but also 1 position before the end. Check the two cases.
-        if scores[-len(N):] == N:  # input is at the end of scores
+        # when 2 new recipes are added at the same time, the input can be at the
+        # end but can also be 1 position before the end. Check the two cases.
+        if scores[-len(N):] == N:         # input is at the end of scores
             return len(scores) - len(N)
-        elif scores[-len(N)-1:-1] == N:
+        elif scores[-len(N)-1:-1] == N:   # input is 1 position before the end
             return len(scores)-1 - len(N)
         pos_elf1 += r1 + 1
         if pos_elf1 >= len(scores):
