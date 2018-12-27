@@ -13,7 +13,7 @@ class Unit:
         self.x      = x
         self.y      = y
         self.health = 200
-        self.attack = 3
+        self.power  = 3
 
     # Move the unit towards a target, only if not already in a target range.
     def move(self):
@@ -59,6 +59,22 @@ class Unit:
         grid[next_x][next_y] = self.type
         grid[self.x][self.y] = "."
         self.x, self.y = next_x, next_y
+
+    # Attack an enemy. Do nothing if no enemy are within range.
+    def attack(self):
+        enemy = "G" if self.type == "E" else "E"
+        all_targets = [ u for u in units if u.type == enemy and u.health > 0 \
+            and (  (u.x == self.x-1 and u.y == self.y) \
+                or (u.x == self.x and u.y == self.y-1) \
+                or (u.x == self.x and u.y == self.y+1) \
+                or (u.x == self.x+1 and u.y == self.y) ) ]
+        if not all_targets: # all_targets is empty
+            return # no target reachable, no attack
+        target = sorted(all_gargets, key=lambda u: (u.health, u.x, u.y))[0]
+        target.health -= self.power
+        if target.health < 0:
+            grid[target.x][target.y] = "."
+            del units[units.index(target)]
 
 # Read the content of filename to get the unit positions and the map. Fill the
 # global variables `grid` (2D list) and `units` (list of Unit instances).
