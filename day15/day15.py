@@ -27,7 +27,8 @@ class Unit:
         or grid[self.x][self.y+1] == enemy:
             return # already in range, no need to move
 
-        # use bfs to know each reachable target with distance and path to it
+        # use BFS to know the reachable cells that are in a target range. For
+        # each one, find the distance and path to it
         stack = deque([(self.x-1, self.y, 1, [(self.x, self.y)]),
                        (self.x, self.y-1, 1, [(self.x, self.y)]),
                        (self.x, self.y+1, 1, [(self.x, self.y)]),
@@ -36,26 +37,35 @@ class Unit:
         reachable = []
         while len(stack) > 0:
             x, y, distance, path = stack.popleft()
+            path += [(x,y)] # add current cell to path
             if (x, y) in visited:
                 continue
             visited.add((x, y))
-            if grid[x][y] == enemy:
-                reachable.append((distance, x, y, path))
-            elif grid[x][y] in "#EG":
-                continue # can't move further if it reaches a wall or a unit
 
-            # go to top, left, right, down: it corresponds to the sorted order
-            stack.append((x-1, y, distance+1, path + [(x,y)]))
-            stack.append((x, y-1, distance+1, path + [(x,y)]))
-            stack.append((x, y+1, distance+1, path + [(x,y)]))
-            stack.append((x+1, y, distance+1, path + [(x,y)]))
+            # can't move further if it reaches a wall or a unit
+            if grid[x][y] in "#EG":
+                continue
+
+            # if current cell is in the range of an enemy, add it to the list
+            if grid[x-1][y] == enemy or grid[x][y-1] == enemy \
+            or grid[x][y+1] == enemy or grid[x+1][y] == enemy:
+                reachable.append((distance, x, y, path))
+
+            # go to visit top/left/right/down: it is the sorted reading order
+            stack.append((x-1, y, distance+1, path))
+            stack.append((x, y-1, distance+1, path))
+            stack.append((x, y+1, distance+1, path))
+            stack.append((x+1, y, distance+1, path))
 
         # no reachable target, no move
         if not reachable:
             return
 
-        # get closest target and the next cell in the path leading to it
-        closest = min(reachable) # distance is first field so min is the closest
+        # get closest target and the next cell in the path leading to it. The
+        # reachable cells are composed of (distance, x, y, path). So min() first
+        # choose the one with minimal distance. If there are ties, x and y will
+        # sort them in reading order.
+        closest = min(reachable)
         _, _, _, path = closest
         next_x, next_y = path[1] # path[0] is self, path[1] is next cell
 
@@ -107,6 +117,12 @@ def print_map():
 def play_round():
     # sort units by their position (top to bottom, left to right)
     for u in sorted(units, key=lambda u: (u.x, u.y)):
+        # if unit is dead, it can't move or attack. The unit is actually already
+        # deleted from the `units` list, but this for loop iterates over a copy
+        # of the `units` list (so it is not updated). This is because the order
+        # of units in a round is determined by their position at the beginning
+        # of the round, not their position during the round (because positions
+        # can change and a unit could play mutiple times if the order changes).
         if u.health <= 0:
             continue
         u.move()
@@ -116,18 +132,16 @@ def play_round():
 # two side dies. Return the product between the number of full rounds completed
 # and the sum of the health of all units still alive.
 def play_battle():
-    round = 0
+    completed_round = 0
     while True:
         play_round()
         health_G = sum([u.health for u in units if u.type == "G"])
         health_E = sum([u.health for u in units if u.type == "E"])
         if health_G == 0:
-            print(round, health_E)
-            return round * health_E
+            return completed_round * health_E
         if health_E == 0:
-            print(round, health_G)
-            return round * health_G
-        round += 1
+            return completed_round * health_G
+        completed_round += 1
 
 # Input file is a map representing Goblins (G) and Elves (E). The Goblins and
 # Elves take turns fighting. During its turn, each unit first move towards the
