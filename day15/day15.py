@@ -113,10 +113,16 @@ def print_map():
                 index += 1
         print("  ", ", ".join(units_of_line))
 
-# Simulate a round: each unit, in turn,  moves and then attacks.
+# Simulate a round: each unit, in turn, moves and then attacks.
 def play_round():
     # sort units by their position (top to bottom, left to right)
     for u in sorted(units, key=lambda u: (u.x, u.y)):
+        # if there are no more living units on the other team, stop the round
+        # and return the sum of the health of all remaining winning units
+        s = sum([v.health for v in units if v.type != u.type])
+        if s <= 0:
+            return sum([v.health for v in units if v.type == u.type])
+
         # if unit is dead, it can't move or attack. The unit is actually already
         # deleted from the `units` list, but this for loop iterates over a copy
         # of the `units` list (so it is not updated). This is because the order
@@ -134,13 +140,10 @@ def play_round():
 def play_battle():
     completed_round = 0
     while True:
-        play_round()
-        health_G = sum([u.health for u in units if u.type == "G"])
-        health_E = sum([u.health for u in units if u.type == "E"])
-        if health_G == 0:
-            return completed_round * health_E
-        if health_E == 0:
-            return completed_round * health_G
+        # if play_round() is not None, it means it has stopped before its end
+        sum_health_winner = play_round()
+        if sum_health_winner is not None:
+            return completed_round * sum_health_winner
         completed_round += 1
 
 # Input file is a map representing Goblins (G) and Elves (E). The Goblins and
