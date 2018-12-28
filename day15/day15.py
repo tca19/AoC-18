@@ -50,6 +50,10 @@ class Unit:
             stack.append((x, y+1, distance+1, path + [(x,y)]))
             stack.append((x+1, y, distance+1, path + [(x,y)]))
 
+        # no reachable target, no move
+        if not reachable:
+            return
+
         # get closest target and the next cell in the path leading to it
         closest = min(reachable) # distance is first field so min is the closest
         _, _, _, path = closest
@@ -70,7 +74,7 @@ class Unit:
                 or (u.x == self.x+1 and u.y == self.y) ) ]
         if not all_targets: # all_targets is empty
             return # no target reachable, no attack
-        target = sorted(all_gargets, key=lambda u: (u.health, u.x, u.y))[0]
+        target = sorted(all_targets, key=lambda u: (u.health, u.x, u.y))[0]
         target.health -= self.power
         if target.health < 0:
             grid[target.x][target.y] = "."
@@ -88,7 +92,7 @@ def read_map(filename):
 
 # Print the grid. For each line, displays the existing units and their health.
 def print_map():
-    # assume that units are sorted by position (top to bottom, left to right)
+    units.sort(key=lambda u: (u.x, u.y))
     index = 0
     for row in grid:
         units_of_line = []
@@ -98,6 +102,13 @@ def print_map():
                 units_of_line.append("{}({})".format(cell, units[index].health))
                 index += 1
         print("  ", ", ".join(units_of_line))
+
+# Simulate a round: each unit, in turn,  moves and then attacks.
+def play_round():
+    # sort units by their position (top to bottom, left to right)
+    for u in sorted(units, key=lambda u: (u.x, u.y)):
+        u.move()
+        u.attack()
 
 # Input file is a map representing Goblins (G) and Elves (E). The Goblins and
 # Elves take turns fighting. During its turn, each unit first move towards the
