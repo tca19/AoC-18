@@ -6,6 +6,7 @@ from collections import deque
 
 grid = []
 units = []
+elf_boost = 0
 
 class Unit:
     def __init__(self, type, x, y):
@@ -13,7 +14,7 @@ class Unit:
         self.x      = x
         self.y      = y
         self.health = 200
-        self.power  = 3
+        self.power  = 3 + elf_boost if type == "E" else 3
 
     # Move the unit towards a target, only if not already in a target range.
     def move(self):
@@ -93,6 +94,11 @@ class Unit:
 # Read the content of filename to get the unit positions and the map. Fill the
 # global variables `grid` (2D list) and `units` (list of Unit instances).
 def read_map(filename):
+    # reset `grid` and `units` list (because they are set with previous battles)
+    global grid
+    global units
+    grid = []
+    units = []
     with open(filename) as f:
         for i, line in enumerate(f):
             grid.append(list(line.strip())) # use list because str is immutable
@@ -146,6 +152,19 @@ def play_battle():
             return completed_round * sum_health_winner
         completed_round += 1
 
+# Find the minimal value for elf_boost such that elves win without any losses.
+# Return the product between the numbers of rounds completed and the sum of the
+# health of remaining elves in this battle.
+def play_battle_boosted_elves(filename):
+    global elf_boost # need to modify the global variable `elf_boost`
+    while True:
+        elf_boost += 1
+        read_map(filename) # reload `units`, using the new value of `elf_boost`
+        starting_elves = sum([1 for u in units if u.type == "E"])
+        outcome = play_battle()
+        if sum([1 for u in units if u.type == "E"]) == starting_elves:
+            return outcome
+
 # Input file is a map representing Goblins (G) and Elves (E). The Goblins and
 # Elves take turns fighting. During its turn, each unit first move towards the
 # closest target then attack it. Each unit has 200 hit points (health) and an
@@ -172,3 +191,4 @@ if __name__ == '__main__':
          sys.exit("error: {} does not exist.".format(filename))
     read_map(filename)
     print("PART ONE:", play_battle())
+    print("PART TWO:", play_battle_boosted_elves(filename))
