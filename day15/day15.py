@@ -76,7 +76,7 @@ class Unit:
             return # no target reachable, no attack
         target = sorted(all_targets, key=lambda u: (u.health, u.x, u.y))[0]
         target.health -= self.power
-        if target.health < 0:
+        if target.health <= 0:
             grid[target.x][target.y] = "."
             del units[units.index(target)]
 
@@ -107,8 +107,27 @@ def print_map():
 def play_round():
     # sort units by their position (top to bottom, left to right)
     for u in sorted(units, key=lambda u: (u.x, u.y)):
+        if u.health <= 0:
+            continue
         u.move()
         u.attack()
+
+# Simulate a battle: make the units fight each other in rounds until one of the
+# two side dies. Return the product between the number of full rounds completed
+# and the sum of the health of all units still alive.
+def play_battle():
+    round = 0
+    while True:
+        play_round()
+        health_G = sum([u.health for u in units if u.type == "G"])
+        health_E = sum([u.health for u in units if u.type == "E"])
+        if health_G == 0:
+            print(round, health_E)
+            return round * health_E
+        if health_E == 0:
+            print(round, health_G)
+            return round * health_G
+        round += 1
 
 # Input file is a map representing Goblins (G) and Elves (E). The Goblins and
 # Elves take turns fighting. During its turn, each unit first move towards the
@@ -135,6 +154,4 @@ if __name__ == '__main__':
     if not os.path.exists(filename):
          sys.exit("error: {} does not exist.".format(filename))
     read_map(filename)
-    print_map()
-    units[0].move()
-    print_map()
+    print("PART ONE:", play_battle())
