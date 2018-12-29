@@ -4,6 +4,57 @@ import os
 import re
 import sys
 
+def addr(register, A, B, C):
+    register[C] = register[A] + register[B]
+
+def addi(register, A, B, C):
+    register[C] = register[A] + B
+
+def mulr(register, A, B, C):
+    register[C] = register[A] * register[B]
+
+def muli(register, A, B, C):
+    register[C] = register[A] * B
+
+def banr(register, A, B, C):
+    register[C] = register[A] & register[B]
+
+def bani(register, A, B, C):
+    register[C] = register[A] & B
+
+def borr(register, A, B, C):
+    register[C] = register[A] | register[B]
+
+def bori(register, A, B, C):
+    register[C] = register[A] | B
+
+def setr(register, A, B, C):
+    register[C] = register[A]
+
+def seti(register, A, B, C):
+    register[C] = A
+
+def gtir(register, A, B, C):
+    register[C] = 1 if A > register[B] else 0
+
+def gtri(register, A, B, C):
+    register[C] = 1 if register[A] > B else 0
+
+def gtrr(register, A, B, C):
+    register[C] = 1 if register[A] > register[B] else 0
+
+def eqir(register, A, B, C):
+    register[C] = 1 if A == register[B] else 0
+
+def eqri(register, A, B, C):
+    register[C] = 1 if register[A] == B else 0
+
+def eqrr(register, A, B, C):
+    register[C] = 1 if register[A] == register[B] else 0
+
+opcodes = [addr, addi, mulr, muli, banr, bani, borr, bori,
+           setr, seti, gtir, gtri, gtrr, eqir, eqri, eqrr]
+
 # Return list of Before/instruction/After and program instructions from filename
 def parse_data(filename):
     extractor = re.compile("-?\d+")
@@ -25,6 +76,20 @@ def parse_data(filename):
                 program.append(instruction)
 
     return groups, program
+
+# Return the number of groups where the intruction can behave at least like 3
+# different opcode.
+def n_behave_3_opcodes(groups):
+    ans = 0
+    for before, instruction, after in groups:
+        n_possible = 0
+        for f in opcodes:
+            f(before, *instruction[1:])
+            if before == after:
+                n_possible += 1
+        if n_possible >= 3:
+            ans += 1
+    return ans
 
 # Input file has two sections:
 #   * the first one is composed of groups of 3 lines like:
@@ -54,4 +119,4 @@ if __name__ == '__main__':
     if not os.path.exists(filename):
          sys.exit("error: {} does not exist.".format(filename))
     groups, program = parse_data(filename)
-    print(program)
+    print("PART ONE:", n_behave_3_opcodes(groups))
