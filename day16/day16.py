@@ -1,7 +1,30 @@
 #!/usr/bin/env python3
 
 import os
+import re
 import sys
+
+# Return list of Before/instruction/After and program instructions from filename
+def parse_data(filename):
+    extractor = re.compile("-?\d+")
+    groups    = []
+    program   = []
+    with open(filename) as f:
+        for line in f:
+            if line == "\n":
+                continue
+            if "Before" in line:
+                # when there is "Before" in a line, two more lines follow
+                # containing an instruction and the values in registers After
+                before = list(map(int, extractor.findall(line)))
+                instruction = list(map(int, extractor.findall(f.readline())))
+                after = list(map(int, extractor.findall(f.readline())))
+                groups.append((before, instruction, after))
+            else:
+                instruction = list(map(int, extractor.findall(line)))
+                program.append(instruction)
+
+    return groups, program
 
 # Input file has two sections:
 #   * the first one is composed of groups of 3 lines like:
@@ -30,3 +53,5 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     if not os.path.exists(filename):
          sys.exit("error: {} does not exist.".format(filename))
+    groups, program = parse_data(filename)
+    print(program)
