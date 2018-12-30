@@ -5,57 +5,91 @@ import re
 import sys
 
 def addr(register, A, B, C):
-    register[C] = register[A] + register[B]
+    new_register = list(register)
+    new_register[C] = register[A] + register[B]
+    return new_register
 
 def addi(register, A, B, C):
-    register[C] = register[A] + B
+    new_register = list(register)
+    new_register[C] = register[A] + B
+    return new_register
 
 def mulr(register, A, B, C):
-    register[C] = register[A] * register[B]
+    new_register = list(register)
+    new_register[C] = register[A] * register[B]
+    return new_register
 
 def muli(register, A, B, C):
-    register[C] = register[A] * B
+    new_register = list(register)
+    new_register[C] = register[A] * B
+    return new_register
 
 def banr(register, A, B, C):
-    register[C] = register[A] & register[B]
+    new_register = list(register)
+    new_register[C] = register[A] & register[B]
+    return new_register
 
 def bani(register, A, B, C):
-    register[C] = register[A] & B
+    new_register = list(register)
+    new_register[C] = register[A] & B
+    return new_register
 
 def borr(register, A, B, C):
-    register[C] = register[A] | register[B]
+    new_register = list(register)
+    new_register[C] = register[A] | register[B]
+    return new_register
 
 def bori(register, A, B, C):
-    register[C] = register[A] | B
+    new_register = list(register)
+    new_register[C] = register[A] | B
+    return new_register
 
 def setr(register, A, B, C):
-    register[C] = register[A]
+    new_register = list(register)
+    new_register[C] = register[A]
+    return new_register
 
 def seti(register, A, B, C):
-    register[C] = A
+    new_register = list(register)
+    new_register[C] = A
+    return new_register
 
 def gtir(register, A, B, C):
-    register[C] = 1 if A > register[B] else 0
+    new_register = list(register)
+    new_register[C] = 1 if A > register[B] else 0
+    return new_register
 
 def gtri(register, A, B, C):
-    register[C] = 1 if register[A] > B else 0
+    new_register = list(register)
+    new_register[C] = 1 if register[A] > B else 0
+    return new_register
 
 def gtrr(register, A, B, C):
-    register[C] = 1 if register[A] > register[B] else 0
+    new_register = list(register)
+    new_register[C] = 1 if register[A] > register[B] else 0
+    return new_register
 
 def eqir(register, A, B, C):
-    register[C] = 1 if A == register[B] else 0
+    new_register = list(register)
+    new_register[C] = 1 if A == register[B] else 0
+    return new_register
 
 def eqri(register, A, B, C):
-    register[C] = 1 if register[A] == B else 0
+    new_register = list(register)
+    new_register[C] = 1 if register[A] == B else 0
+    return new_register
 
 def eqrr(register, A, B, C):
-    register[C] = 1 if register[A] == register[B] else 0
+    new_register = list(register)
+    new_register[C] = 1 if register[A] == register[B] else 0
+    return new_register
 
-opcodes = [addr, addi, mulr, muli, banr, bani, borr, bori,
-           setr, seti, gtir, gtri, gtrr, eqir, eqri, eqrr]
+OPCODES = {"addr": addr, "addi": addi, "mulr": mulr, "muli": muli,
+           "banr": banr, "bani": bani, "borr": borr, "bori": bori,
+           "setr": setr, "seti": seti, "gtir": gtir, "gtri": gtri,
+           "gtrr": gtrr, "eqir": eqir, "eqri": eqri, "eqrr": eqrr}
 
-# Return list of Before/instruction/After and program instructions from filename
+# Return list of (Before,instruction,After) and program execution instructions
 def parse_data(filename):
     extractor = re.compile("-?\d+")
     groups    = []
@@ -74,22 +108,24 @@ def parse_data(filename):
             else:
                 instruction = list(map(int, extractor.findall(line)))
                 program.append(instruction)
-
     return groups, program
 
-# Return the number of groups where the intruction can behave at least like 3
+# Return the list of opcodes that can transform registers `before` into `after`.
+def possible_opcodes(before, instruction, after):
+    possible = []
+    for opcode, f in OPCODES.items():
+        # `instruction` has 4 values (opcode ID, A, B and C)
+        opcode_id, A, B, C = instruction
+        if f(before, A, B, C) == after:
+            possible.append(opcode)
+    return possible
+
+# Return the number of groups where the intruction can behave at least like `n`
 # different opcode.
-def n_behave_3_opcodes(groups):
-    ans = 0
-    for before, instruction, after in groups:
-        n_possible = 0
-        for f in opcodes:
-            f(before, *instruction[1:])
-            if before == after:
-                n_possible += 1
-        if n_possible >= 3:
-            ans += 1
-    return ans
+def similar_different_opcodes(groups, n=3):
+    opcodes_per_group = [possible_opcodes(before, instruction, after)
+                         for before, instruction, after in groups]
+    return sum([1 for ops in opcodes_per_group if len(ops) >= n])
 
 # Input file has two sections:
 #   * the first one is composed of groups of 3 lines like:
@@ -119,4 +155,4 @@ if __name__ == '__main__':
     if not os.path.exists(filename):
          sys.exit("error: {} does not exist.".format(filename))
     groups, program = parse_data(filename)
-    print("PART ONE:", n_behave_3_opcodes(groups))
+    print("PART ONE:", similar_different_opcodes(groups))
