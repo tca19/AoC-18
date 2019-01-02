@@ -5,35 +5,47 @@ import re
 import sys
 from collections import deque
 
-SIZE = 2000 # assume maximum x and y will be 2000
-grid = [ ["."] * SIZE for _ in range(SIZE) ]
-x_min = y_min = SIZE
-x_max = y_max = 0
-
-# Read `filename` (segment coordinates); add lines in `grid`; find min/max
+# Read `filename` (segment coordinates); create and return `grid` and min/max
+# values for x and y axis
 def parse_data(filename):
     extractor  = re.compile("-?\d+")
-    global x_min, x_max, y_min, y_max
+    x_min = y_min = 10000
+    x_max = y_max = 0
+    vertical = []
+    horizontal = []
     with open(filename) as f:
         # lines are either "x=495, y=2..7" (vertical) or "y=7, x=495..501"
         # (horizontal). The problem considers x is the column number, y the row
         for line in f:
             if line[0] == "x":
                 y, x_start, x_end = list(map(int, extractor.findall(line)))
-                for x in range(x_start, x_end+1):
-                    grid[x][y] = "#"
+                vertical.append((y, x_start, x_end))
                 x_min = min(x_min, x_start)
                 x_max = max(x_max, x_end)
                 y_min = min(y_min, y)
                 y_max = max(y_max, y)
             elif line[0] == "y":
                 x, y_start, y_end = list(map(int, extractor.findall(line)))
-                for y in range(y_start, y_end+1):
-                    grid[x][y] = "#"
+                horizontal.append((x, y_start, y_end))
                 x_min = min(x_min, x)
                 x_max = max(x_max, x)
                 y_min = min(y_min, y_start)
                 y_max = max(y_max, y_end)
+
+    HEIGHT = x_max - x_min + 1
+    WIDTH  = y_max - y_min + 3 # margin of 1 on each side, water can overflow
+    print(HEIGHT, WIDTH)
+    grid   = [ ["."] * WIDTH for _ in range(HEIGHT) ]
+    start  = (0, 500 - y_min + 1) # original water spring is at (0, 500)
+
+    for y, x_start, x_end in vertical:
+        for x in range(x_start, x_end+1):
+            #print(y, x_start, x_end)
+            grid[x-x_min][y-y_min + 1] = "#" # +1 because margin of 1 on the left
+    for x, y_start, y_end in horizontal:
+        for y in range(y_start, y_end+1):
+            grid[x-x_min][y-y_min + 1] = "#" # +1 because margin of 1 on the left
+    return grid, x_min, y_min,  x_max, y_max, start
 
 # Make the water flows from `start` to the bottom, filling containers. Return
 # the number of cells reached by the water.
@@ -135,7 +147,7 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     if not os.path.exists(filename):
          sys.exit("error: {} does not exist.".format(filename))
-    parse_data(filename)
-    moving, resting = flow((0, 500))
-    print("PART ONE:", moving+resting)
-    print("PART TWO:", resting)
+    grid, x_min, y_min,  x_max, y_max, start = parse_data(filename)
+    #moving, resting = flow((0, 500))
+    #print("PART ONE:", moving+resting)
+    #print("PART TWO:", resting)
