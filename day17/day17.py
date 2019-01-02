@@ -6,7 +6,7 @@ import sys
 from collections import deque
 
 SIZE = 2000 # assume maximum x and y will be 2000
-grid = [ ["." for _ in range(SIZE)] for _ in range(SIZE) ]
+grid = [ ["."] * SIZE for _ in range(SIZE) ]
 x_min = y_min = SIZE
 x_max = y_max = 0
 
