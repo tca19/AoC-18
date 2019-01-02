@@ -3,6 +3,7 @@
 import os
 import re
 import sys
+from collections import deque
 
 SIZE = 2000 # assume maximum x and y will be 2000
 grid = [ ["." for _ in range(SIZE)] for _ in range(SIZE) ]
@@ -33,6 +34,74 @@ def parse_data(filename):
                 x_max = max(x_max, x)
                 y_min = min(y_min, y_start)
                 y_max = max(y_max, y_end)
+
+# Make the water flows from `start` to the bottom, filling containers. Return
+# the number of cells reached by the water.
+def flow(start):
+    # `stack` is a list of points where water starts to move down (sources)
+    stack = deque([start])
+    while len(stack) > 0:
+        x_source, y_source = stack.popleft()
+        x, y = x_source, y_source # need a backup to reset the values x and y
+        grid[x][y] = "|"
+
+        # water can move down while it finds empty cells
+        while x+1 <= x_max and grid[x+1][y] == ".":
+            grid[x+1][y] = "|"
+            x += 1
+
+        # if limit is reached or it arrives where there already is moving water,
+        # no more things to do, move to next water source
+        if x+1 > x_max or grid[x+1][y] == "|":
+            continue
+
+        # once water reached a bottom wall, it can fill the container. Spread
+        # water on both left and right until water overflows the container
+        flows_on_one_side = False
+        while not flows_on_one_side:
+            # spread the water to the left. Water can spread to y-1 if there is
+            # a floor ("#", "|" or "~") underneath and until it finds a wall "#"
+            while grid[x][y-1] != "#" and grid[x+1][y-1] in "#|~":
+                grid[x][y-1] = "|"
+                y -= 1
+            # if cell on the left is not a wall and there is no floor, water can
+            # fall from this cell. It becomes a new water source
+            if grid[x][y-1] != "#" and grid[x+1][y-1] == ".":
+                stack.append((x, y-1))
+                flows_on_one_side = True
+
+            # spread the water to the right; first reset y position to be
+            # aligned with the source. Water can spread to y+1 if there is a
+            # floor ("#", "|" or "~") underneath and until it finds a wall "#"
+            y = y_source
+            while grid[x][y+1] != "#" and grid[x+1][y+1] in "#|~":
+                grid[x][y+1] = "|"
+                y += 1
+            # if cell on the right is not a wall and there is no floor, water
+            # can fall from this cell. It becomes a new water source
+            if grid[x][y+1] != "#" and grid[x+1][y+1] == ".":
+                stack.append((x, y+1))
+                flows_on_one_side = True
+
+            # if the water does not overflow yet, mark all water cells of
+            # current level (same x) as resting ("~"). Then move up and repeat
+            # the spreading.
+            if not flows_on_one_side:
+                # y is already at the right wall, move back to left wall
+                while grid[x][y] != "#":
+                    grid[x][y] = "~"
+                    y -= 1
+                x, y = x-1, y_source
+                grid[x][y] = "|"
+
+    # count the number of cells filled by water
+    n = 0
+    for x in range(x_min, x_max+1):
+        # water can be on y_max+1 (if it overflows a container on the right)
+        for y in range(y_min-1, y_max+2):
+            if grid[x][y] in "~|" :
+                n += 1
+    return n
 
 # Input file is a list of coordinate ranges forming horizontal/vertical lines
 # (such as "x=495, y=2..7", a vertical line if y is the row and x the column).
@@ -65,4 +134,5 @@ if __name__ == '__main__':
     if not os.path.exists(filename):
          sys.exit("error: {} does not exist.".format(filename))
     parse_data(filename)
-    print_grid()
+    water_cells = flow((0, 500))
+    print("PART ONE:", water_cells)
