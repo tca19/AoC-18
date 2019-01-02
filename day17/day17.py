@@ -94,14 +94,16 @@ def flow(start):
                 x, y = x-1, y_source
                 grid[x][y] = "|"
 
-    # count the number of cells filled by water
-    n = 0
+    # count the number of cells filled by moving and resting water
+    moving = resting = 0
     for x in range(x_min, x_max+1):
         # water can be on y_max+1 (if it overflows a container on the right)
         for y in range(y_min-1, y_max+2):
-            if grid[x][y] in "~|" :
-                n += 1
-    return n
+            if grid[x][y] == "|" :
+                moving += 1
+            if grid[x][y] == "~":
+                resting += 1
+    return moving, resting
 
 # Input file is a list of coordinate ranges forming horizontal/vertical lines
 # (such as "x=495, y=2..7", a vertical line if y is the row and x the column).
@@ -134,5 +136,6 @@ if __name__ == '__main__':
     if not os.path.exists(filename):
          sys.exit("error: {} does not exist.".format(filename))
     parse_data(filename)
-    water_cells = flow((0, 500))
-    print("PART ONE:", water_cells)
+    moving, resting = flow((0, 500))
+    print("PART ONE:", moving+resting)
+    print("PART TWO:", resting)
