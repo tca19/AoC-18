@@ -5,7 +5,7 @@ import re
 import sys
 from collections import deque
 
-# Read `filename` (segment coordinates); create and return `grid` and min/max
+# Read `filename` (segment coordinates); return `grid` and start position
 # values for x and y axis
 def parse_data(filename):
     extractor  = re.compile("-?\d+")
@@ -34,22 +34,23 @@ def parse_data(filename):
 
     HEIGHT = x_max - x_min + 1
     WIDTH  = y_max - y_min + 3 # margin of 1 on each side, water can overflow
-    print(HEIGHT, WIDTH)
     grid   = [ ["."] * WIDTH for _ in range(HEIGHT) ]
     start  = (0, 500 - y_min + 1) # original water spring is at (0, 500)
 
     for y, x_start, x_end in vertical:
         for x in range(x_start, x_end+1):
             #print(y, x_start, x_end)
-            grid[x-x_min][y-y_min + 1] = "#" # +1 because margin of 1 on the left
+            grid[x-x_min][y-y_min+1] = "#" # +1 because margin of 1 on the left
     for x, y_start, y_end in horizontal:
         for y in range(y_start, y_end+1):
-            grid[x-x_min][y-y_min + 1] = "#" # +1 because margin of 1 on the left
-    return grid, x_min, y_min,  x_max, y_max, start
+            grid[x-x_min][y-y_min+1] = "#" # +1 because margin of 1 on the left
+    return grid, start
 
 # Make the water flows from `start` to the bottom, filling containers. Return
 # the number of cells reached by the water.
-def flow(start):
+def flow(grid, start):
+    HEIGHT = len(grid)
+    WIDTH  = len(grid[0])
     # `stack` is a list of points where water starts to move down (sources)
     stack = deque([start])
     while len(stack) > 0:
@@ -58,13 +59,13 @@ def flow(start):
         grid[x][y] = "|"
 
         # water can move down while it finds empty cells
-        while x+1 <= x_max and grid[x+1][y] == ".":
+        while x+1 < HEIGHT and grid[x+1][y] == ".":
             grid[x+1][y] = "|"
             x += 1
 
         # if limit is reached or it arrives where there already is moving water,
         # no more things to do, move to next water source
-        if x+1 > x_max or grid[x+1][y] == "|":
+        if x+1 == HEIGHT or grid[x+1][y] == "|":
             continue
 
         # once water reached a bottom wall, it can fill the container. Spread
@@ -108,9 +109,8 @@ def flow(start):
 
     # count the number of cells filled by moving and resting water
     moving = resting = 0
-    for x in range(x_min, x_max+1):
-        # water can be on y_max+1 (if it overflows a container on the right)
-        for y in range(y_min-1, y_max+2):
+    for x in range(HEIGHT):
+        for y in range(WIDTH):
             if grid[x][y] == "|" :
                 moving += 1
             if grid[x][y] == "~":
@@ -147,7 +147,6 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     if not os.path.exists(filename):
          sys.exit("error: {} does not exist.".format(filename))
-    grid, x_min, y_min,  x_max, y_max, start = parse_data(filename)
-    #moving, resting = flow((0, 500))
-    #print("PART ONE:", moving+resting)
-    #print("PART TWO:", resting)
+    moving, resting = flow(*parse_data(filename))
+    print("PART ONE:", moving+resting)
+    print("PART TWO:", resting)
