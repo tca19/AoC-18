@@ -8,7 +8,7 @@ def update(grid):
     HEIGHT = len(grid)
     WIDTH  = len(grid[0])
     new_grid = [["."] * WIDTH for _ in range(HEIGHT)]
-    for x in range(1, HEIGHT-1):    # start at 1, end at -1 because of margin
+    for x in range(1, HEIGHT-1):    # start at 1, end at -1 = because of margin
         for y in range(1, WIDTH-1):
             # count the occurrence of each symbol on the 8 adjacent cells
             count = {".": 0, "|": 0, "#": 0}
@@ -33,11 +33,26 @@ def update(grid):
                 new_grid[x][y] = grid[x][y]
     return new_grid
 
+# Return the string version of grid (concatenation of all cells)
+def to_string(grid):
+    return "".join(["".join(line) for line in grid])
+
 # Return the resource value of grid (n_trees * n_lumberyards) after N iterations
 def resource_value(grid, N=0):
+    # keep an history of previous grid states, to find possible cycles
+    saved = {to_string(grid): 0}
+
     # make the grid updates itself
-    for iter in range(N):
+    iter = 0
+    while iter < N:
         grid = update(grid)
+        iter += 1
+        if to_string(grid) in saved: # we have a cycle, skip many steps
+            cycle_length = iter - saved[to_string(grid)]
+            iter += ((N-iter) // cycle_length) * cycle_length
+        else:
+            saved[to_string(grid)] = iter
+
     # compute the resource value of grid
     n_trees = n_lumberyards = 0
     for i in range(len(grid)):
@@ -68,3 +83,4 @@ if __name__ == '__main__':
     grid = [["."] + list(l) + ["."] for l in open(filename).read().splitlines()]
     grid = [["."] * len(grid[0])] + grid + [["."] * len(grid[0])]
     print("PART ONE:", resource_value(grid, 10))
+    print("PART TWO:", resource_value(grid, 1000000000))
