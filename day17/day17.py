@@ -39,7 +39,6 @@ def parse_data(filename):
 
     for y, x_start, x_end in vertical:
         for x in range(x_start, x_end+1):
-            #print(y, x_start, x_end)
             grid[x-x_min][y-y_min+1] = "#" # +1 because margin of 1 on the left
     for x, y_start, y_end in horizontal:
         for y in range(y_start, y_end+1):
@@ -64,12 +63,12 @@ def flow(grid, start):
             x += 1
 
         # if limit is reached or it arrives where there already is moving water,
-        # no more things to do, move to next water source
+        # no more things to do, move to the next water source
         if x+1 == HEIGHT or grid[x+1][y] == "|":
             continue
 
-        # once water reached a bottom wall, it can fill the container. Spread
-        # water on both left and right until water overflows the container
+        # once water reaches a bottom wall, it can fill the container. Spread
+        # water on both left and right until the water overflows the container
         flows_on_one_side = False
         while not flows_on_one_side:
             # spread the water to the left. Water can spread to y-1 if there is
@@ -98,7 +97,7 @@ def flow(grid, start):
 
             # if the water does not overflow yet, mark all water cells of
             # current level (same x) as resting ("~"). Then move up and repeat
-            # the spreading.
+            # the spreading operations.
             if not flows_on_one_side:
                 # y is already at the right wall, move back to left wall
                 while grid[x][y] != "#":
@@ -107,7 +106,7 @@ def flow(grid, start):
                 x, y = x-1, y_source
                 grid[x][y] = "|"
 
-    # count the number of cells filled by moving and resting water
+    # count the number of cells filled by moving or resting water
     moving = resting = 0
     for x in range(HEIGHT):
         for y in range(WIDTH):
@@ -120,8 +119,8 @@ def flow(grid, start):
 # Input file is a list of coordinate ranges forming horizontal/vertical lines
 # (such as "x=495, y=2..7", a vertical line if y is the row and x the column).
 # These lines represent clay containers, where water can be trapped. An infinite
-# source of water at (500, 0) will produce water that will fall down, filling
-# the clay containers. Below is an exemple of lines, and clay container (both
+# source of water + at (500, 0) will produce water that will fall down, filling
+# the clay containers. Below is an exemple of lines, and clay containers (both
 # unfilled and filled with water).
 #
 #                                 ......+.......             ......+.......
@@ -146,7 +145,7 @@ if __name__ == '__main__':
         sys.exit("usage: ./day17.py INPUT_FILE")
     filename = sys.argv[1]
     if not os.path.exists(filename):
-         sys.exit("error: {} does not exist.".format(filename))
+        sys.exit("error: {} does not exist.".format(filename))
     moving, resting = flow(*parse_data(filename))
     print("PART ONE:", moving+resting)
     print("PART TWO:", resting)
