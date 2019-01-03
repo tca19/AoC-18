@@ -90,6 +90,21 @@ OPCODES = {"addr": addr, "addi": addi, "mulr": mulr, "muli": muli,
            "setr": setr, "seti": seti, "gtir": gtir, "gtri": gtri,
            "gtrr": gtrr, "eqir": eqir, "eqri": eqri, "eqrr": eqrr}
 
+# Run the program instructions until the instruction pointer points outside the
+# instructions list. Use the `bounded_register` as the instruction pointer.
+# Return the value of register 0 at the end of the program.
+def run_program(instructions, bounded_register):
+    registers = [0] * 6
+    ip = 0 # instruction pointer
+    while ip < len(instructions):
+        registers[bounded_register] = ip
+        name, A, B, C = instructions[ip].split()
+        A, B, C = int(A), int(B), int(C)
+        registers = OPCODES[name](registers, A, B, C)
+        ip = registers[bounded_register]
+        ip += 1
+    return registers[0]
+
 # Input file is composed of assembly instructions such as "mulr 2 5 3" (one per
 # line) which simulate a program.
 # Each instruction has: <op_code> <input_A> <input_B> <output_C>. They do
@@ -113,3 +128,7 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     if not os.path.exists(filename):
         sys.exit("error: {} does not exist.".format(filename))
+    instructions = open(filename).read().splitlines()
+    bounded_registers = int(instructions[0].split()[1])
+    instructions = instructions[1:]
+    print("PART ONE:", run_program(instructions, bounded_registers))
