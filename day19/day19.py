@@ -105,6 +105,14 @@ def run_program(instructions, bounded_register):
         ip += 1
     return registers[0]
 
+# Return the sum of all divisors of n
+def sum_divisors(n):
+    s = 0
+    for i in range(1, n+1):
+        if n % i == 0:
+            s += i
+    return s
+
 # Input file is composed of assembly instructions such as "mulr 2 5 3" (one per
 # line) which simulate a program.
 # Each instruction has: <op_code> <input_A> <input_B> <output_C>. They do
