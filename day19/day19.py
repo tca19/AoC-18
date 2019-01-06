@@ -91,19 +91,27 @@ OPCODES = {"addr": addr, "addi": addi, "mulr": mulr, "muli": muli,
            "gtrr": gtrr, "eqir": eqir, "eqri": eqri, "eqrr": eqrr}
 
 # Run the program instructions until the instruction pointer points outside the
-# instructions list. Use the `bounded_register` as the instruction pointer.
-# Return the value of register 0 at the end of the program.
+# instructions list. Use the `bounded_register` as the instruction pointer.  Use
+# the optimized reverse engineered equivalent function of the instructions to
+# get the result.
 def run_program(instructions, bounded_register):
     registers = [0] * 6
-    ip = 0 # instruction pointer
-    while ip < len(instructions):
+    # The instructions are equivalent to finding the sum of the divisors of a
+    # number. This number depends on the input instructions (because it is
+    # computed with some mulr/addi/addr operations) so start by running a few
+    # instruction to initialize the registers with this number.
+    n_steps = 0
+    ip      = 0 # instruction pointer
+    while ip < len(instructions) and n_steps < 30:
         registers[bounded_register] = ip
         name, A, B, C = instructions[ip].split()
         A, B, C = int(A), int(B), int(C)
         registers = OPCODES[name](registers, A, B, C)
         ip = registers[bounded_register]
         ip += 1
-    return registers[0]
+        n_steps += 1
+    # usually the number is the largest one of the registers (around 1000)
+    return sum_divisors(max(registers))
 
 # Return the sum of all divisors of n
 def sum_divisors(n):
