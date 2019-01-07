@@ -94,15 +94,16 @@ OPCODES = {"addr": addr, "addi": addi, "mulr": mulr, "muli": muli,
 # instructions list. Use the `bounded_register` as the instruction pointer.  Use
 # the optimized reverse engineered equivalent function of the instructions to
 # get the result.
-def run_program(instructions, bounded_register):
+def run_program(instructions, bounded_register, part2=False):
     registers = [0] * 6
+    if part2: registers[0] = 1
     # The instructions are equivalent to finding the sum of the divisors of a
     # number. This number depends on the input instructions (because it is
     # computed with some mulr/addi/addr operations) so start by running a few
     # instruction to initialize the registers with this number.
     n_steps = 0
     ip      = 0 # instruction pointer
-    while ip < len(instructions) and n_steps < 30:
+    while ip < len(instructions) and n_steps < 20:
         registers[bounded_register] = ip
         name, A, B, C = instructions[ip].split()
         A, B, C = int(A), int(B), int(C)
@@ -148,3 +149,4 @@ if __name__ == '__main__':
     bounded_registers = int(instructions[0].split()[1])
     instructions = instructions[1:]
     print("PART ONE:", run_program(instructions, bounded_registers))
+    print("PART TWO:", run_program(instructions, bounded_registers, part2=True))
