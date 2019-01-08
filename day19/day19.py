@@ -117,9 +117,14 @@ def run_program(instructions, bounded_register, part2=False):
 # Return the sum of all divisors of n
 def sum_divisors(n):
     s = 0
-    for i in range(1, n+1):
+    sqrt = int(n**0.5)
+    for i in range(1, sqrt+1):
         if n % i == 0:
             s += i
+            s += n // i
+    # if n is a perfect square, sqrt has been counted twice
+    if sqrt * sqrt == n:
+        s -= sqrt
     return s
 
 # Input file is composed of assembly instructions such as "mulr 2 5 3" (one per
